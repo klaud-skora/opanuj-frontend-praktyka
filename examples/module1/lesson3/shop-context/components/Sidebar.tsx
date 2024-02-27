@@ -7,15 +7,11 @@ import { IoMdClose } from 'react-icons/io';
 
 import { CartContext } from '../contexts/CartContext';
 import CartItem from './CartItem';
+import { SidebarContext } from '../contexts/SidebarContext';
 
-interface SidebarProps {
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) => {
+const Sidebar = () => {
   const { cart, clearCart, itemAmount, total } = useContext(CartContext);
-
+  const { isSidebarOpen, setIsSidebarOpen } = useContext(SidebarContext);
   return (
     <div
       className={`${
