@@ -13,6 +13,10 @@ export function formValidator(
     errors.push('Last name is required');
   }
 
+  if(isNaN(age)) {
+    throw new Error('Age must be a number');
+  }
+
   if (age < 0) {
     errors.push('Age must be a positive number');
   }

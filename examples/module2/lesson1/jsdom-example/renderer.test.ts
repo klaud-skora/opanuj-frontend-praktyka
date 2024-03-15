@@ -15,7 +15,19 @@ describe('User renderer', () => {
 
     const container = document.createElement('div');
     renderItems(container, users);
-    expect(Array.from(container.querySelectorAll('li'))).toHaveLength(3);
+
+    const renderedUsers = Array.from(container.querySelectorAll('li'));
+    expect(renderedUsers).toHaveLength(3);
+
+    for(const user of users) {
+      expect(container.innerHTML).toContain(user.name);
+      expect(container.innerHTML).toContain(user.age);
+
+      if (user.role === 'admin' ) {
+        expect(container.innerHTML).toContain('Admin');
+      }
+    }
+    
   });
 
   test('should render only regular users if non-admin is rendering the list', () => {
