@@ -1,31 +1,44 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, WritableSignal, computed, effect, signal } from '@angular/core';
+import { Injectable, Signal, computed, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Character } from '../types/Character';
+import { combineLatest, map, of, switchMap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CharacterSearchService {
-  private charactersSource: WritableSignal<Character[]> = signal([]);
+  private charactersSource: Signal<Character[]> = signal([]);
   private nameSubject = signal('');
   private genderSubject = signal('');
   private sortOptionSubject = signal('');
-  private apiBaseUrl = 'https://rickandmortyapi.com/api/character/';
-  characters = computed(() => this.sortCharacters(this.charactersSource(), this.sortOptionSubject()));
+  characters: Signal<Character[]> = signal([]);
+  charactersNew: Signal<Character[]> = signal([]);
 
+  private apiBaseUrl = 'https://rickandmortyapi.com/api/character/';
 
   constructor(private http: HttpClient) {
-    effect(() => {
-      if (this.nameSubject() !== '' || this.genderSubject() !== '') {
-        this.http
-          .get<{ results: Character[] }>(
-            `${this.apiBaseUrl}?name=${this.nameSubject()}&gender=${this.genderSubject()}`
-          )
-          .subscribe((response) => {
-            this.charactersSource.set(response.results);
-          })
-      }
+    this.charactersSource = toSignal(
+      combineLatest([
+        toObservable(this.nameSubject),
+        toObservable(this.genderSubject)])
+        .pipe(switchMap(([name, age]) => {
+          if (name !== '' || age !== '') {
+            return this.http
+              .get<{ results: Character[] }>(
+                `${this.apiBaseUrl}?name=${name}&gender=${age}`
+              )
+              .pipe(map((response) => response.results || []));
+          } else {
+            return of([]);
+          }
+      })), { initialValue: [] }
+    );
+
+    this.characters = computed(() => {
+      return this.sortCharacters(this.charactersSource(), this.sortOptionSubject());
     });
+
   }
 
   setName(name: string) {
